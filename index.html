@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuestList — Gamified To-Do</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090f;
+  --surface: #0f1221;
+  --surface2: #161a2e;
+  --surface3: #1c2140;
+  --border: #252b47;
+  --border2: #2e3660;
+  --gold: #f5c842;
+  --gold2: #e8a020;
+  --cyan: #00e5ff;
+  --purple: #7c3aed;
+  --green: #22c55e;
+  --red: #ef4444;
+  --text: #dde3f5;
+  --muted: #4e5a7a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden;}
+
+/* STARS */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 8% 15%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 72%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 37% 28%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 88%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 68% 42%,rgba(255,255,255,.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 79% 11%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 91% 63%,rgba(255,255,255,.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 14% 55%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 44% 5%,rgba(245,200,66,.5) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 76% 95%,rgba(0,229,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 61% 75%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(2px 2px at 56% 22%,rgba(124,58,237,.6) 0%,transparent 100%),
+    radial-gradient(ellipse 80% 50% at 20% 10%,rgba(124,58,237,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 80%,rgba(0,229,255,.05) 0%,transparent 60%);
+}
+
+/* ===================== LOGIN PAGE ===================== */
+#loginView{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.login-card{
+  width:100%;max-width:430px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:20px;overflow:hidden;
+  box-shadow:0 0 60px rgba(124,58,237,.18),0 0 120px rgba(0,229,255,.05);
+  animation:slideUp .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.login-top{
+  padding:36px 36px 22px;text-align:center;
+  background:linear-gradient(180deg,rgba(124,58,237,.1) 0%,transparent 100%);
+  border-bottom:1px solid var(--border);position:relative;
+}
+.login-top::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),var(--purple),transparent);}
+.login-logo{
+  font-family:'Cinzel Decorative',serif;font-size:2rem;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 14px rgba(245,200,66,.35));margin-bottom:6px;
+}
+.login-sub{color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:3px;text-transform:uppercase;}
+.login-body{padding:28px 36px 34px;}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:22px;border:1px solid var(--border);}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-weight:700;font-size:.9rem;letter-spacing:1px;color:var(--muted);transition:all .2s;}
+.auth-tab.active{background:var(--surface3);color:var(--cyan);box-shadow:0 0 12px rgba(0,229,255,.1);}
+.fgroup{margin-bottom:15px;}
+.flabel{display:block;font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.finput{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;
+  color:var(--text);padding:11px 15px;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:500;
+  outline:none;transition:all .2s;
+}
+.finput:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,.08);}
+.finput::placeholder{color:var(--muted);}
+.avatar-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.av-opt{
+  width:42px;height:42px;border-radius:50%;border:2px solid var(--border2);
+  background:var(--surface2);display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;cursor:pointer;transition:all .15s;
+}
+.av-opt:hover{border-color:var(--gold);transform:scale(1.1);}
+.av-opt.sel{border-color:var(--gold);background:rgba(245,200,66,.1);box-shadow:0 0 10px rgba(245,200,66,.3);}
+.auth-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:var(--red);font-family:'Share Tech Mono',monospace;font-size:.75rem;padding:10px 14px;margin-bottom:12px;display:none;}
+.btn-auth{
+  width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),#4f46e5);
+  color:#fff;border:none;border-radius:10px;font-family:'Cinzel Decorative',serif;
+  font-size:.82rem;cursor:pointer;letter-spacing:1px;transition:all .2s;overflow:hidden;position:relative;
+}
+.btn-auth:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(124,58,237,.45);}
+.btn-auth:active{transform:translateY(0);}
+
+/* ===================== APP PAGE ===================== */
+#appView{display:none;position:relative;z-index:1;min-height:100vh;}
+
+/* NAV */
+.topnav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;border-bottom:1px solid var(--border);
+  background:rgba(15,18,33,.92);backdrop-filter:blur(14px);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.05rem;background:linear-gradient(135deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-user{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:30px;padding:5px 14px 5px 6px;cursor:pointer;transition:border-color .2s;}
+.nav-user:hover{border-color:var(--cyan);}
+.nav-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:.9rem;border:1px solid var(--gold);}
+.nav-info .nav-name{font-weight:700;font-size:.88rem;line-height:1.1;}
+.nav-info .nav-lvl{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--cyan);}
+.btn-logout{background:none;border:1px solid var(--border2);color:var(--muted);padding:6px 13px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.btn-logout:hover{color:var(--red);border-color:var(--red);background:rgba(239,68,68,.07);}
+
+/* CONTENT */
+.content{max-width:1200px;margin:0 auto;padding:22px 18px;}
+
+/* PROFILE STRIP */
+.profile-strip{
+  display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:20px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:14px;
+  padding:20px 24px;margin-bottom:22px;position:relative;overflow:hidden;
+}
+.profile-strip::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),transparent);}
+@media(max-width:700px){.profile-strip{grid-template-columns:auto 1fr;grid-template-rows:auto auto;}}
+
+.p-avatar{
+  width:70px;height:70px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;border:3px solid var(--gold);
+  box-shadow:0 0 22px rgba(245,200,66,.28);position:relative;flex-shrink:0;
+}
+.p-lvl-badge{
+  position:absolute;bottom:-3px;right:-3px;
+  background:var(--gold);color:#000;font-family:'Share Tech Mono',monospace;
+  font-size:.58rem;font-weight:700;padding:2px 5px;border-radius:10px;
+}
+.p-info{}
+.p-name{font-family:'Cinzel Decorative',serif;font-size:1.1rem;margin-bottom:2px;}
+.p-title{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--cyan);letter-spacing:1px;margin-bottom:8px;}
+.p-xp-label{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:5px;}
+.xp-track{height:9px;background:var(--surface2);border-radius:5px;overflow:hidden;border:1px solid var(--border);}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:5px;transition:width .7s cubic-bezier(.34,1.56,.64,1);}
+
+.p-stat{text-align:center;padding:0 16px;border-left:1px solid var(--border);}
+.p-stat-val{font-family:'Cinzel Decorative',serif;font-size:1.8rem;line-height:1;}
+.p-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.val-gold{color:var(--gold);filter:drop-shadow(0 0 8px rgba(245,200,66,.4));}
+.val-cyan{color:var(--cyan);filter:drop-shadow(0 0 8px rgba(0,229,255,.3));}
+.val-green{color:var(--green);}
+
+/* BADGES */
+.p-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.badge{font-size:.65rem;font-family:'Share Tech Mono',monospace;padding:2px 9px;border-radius:20px;letter-spacing:1px;}
+.b-gold{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.25);}
+.b-cyan{background:rgba(0,229,255,.08);color:var(--cyan);border:1px solid rgba(0,229,255,.2);}
+.b-purple{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.25);}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 290px;gap:18px;}
+@media(max-width:740px){.main-grid{grid-template-columns:1fr;}}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border2);border-radius:14px;overflow:hidden;}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;gap:6px;}
+.panel-title{font-family:'Cinzel Decorative',serif;font-size:.78rem;color:var(--gold);letter-spacing:1px;}
+.tab-bar{display:flex;gap:3px;}
+.tab-btn{background:none;border:none;color:var(--muted);padding:4px 11px;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;border-radius:6px;transition:all .18s;}
+.tab-btn.active{background:var(--surface3);color:var(--cyan);}
+.tab-btn:hover:not(.active){color:var(--text);}
+.cpill{background:var(--purple);color:#fff;font-size:.58rem;font-family:'Share Tech Mono',monospace;padding:1px 5px;border-radius:10px;margin-left:3px;vertical-align:middle;}
+
+/* ADD FORM */
+.add-form{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap;}
+.add-input{flex:1;min-width:150px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:9px 13px;font-family:'Rajdhani',sans-serif;font-size:.92rem;outline:none;transition:border-color .2s;}
+.add-input:focus{border-color:var(--cyan);}
+.diff-sel{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:9px 9px;font-family:'Rajdhani',sans-serif;font-size:.85rem;outline:none;cursor:pointer;}
+.btn-add{background:linear-gradient(135deg,var(--purple),#4f46e5);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Rajdhani',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .18s;}
+.btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,58,237,.4);}
+
+/* TASK LIST */
+.task-list{padding:10px;max-height:420px;overflow-y:auto;}
+.task-list::-webkit-scrollbar{width:3px;}
+.task-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.task-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;margin-bottom:6px;border:1px solid var(--border);background:var(--surface2);transition:all .18s;position:relative;overflow:hidden;}
+.task-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.task-item.diff-easy::before{background:var(--green);}
+.task-item.diff-medium::before{background:var(--gold);}
+.task-item.diff-hard::before{background:var(--red);}
+.task-item.diff-epic::before{background:var(--purple);}
+.task-item:hover{border-color:var(--border2);transform:translateX(2px);}
+.task-item.done{opacity:.42;}
+.task-item.done .task-name{text-decoration:line-through;color:var(--muted);}
+
+.task-chk{width:21px;height:21px;border-radius:50%;border:2px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;font-size:.7rem;}
+.task-chk:hover{border-color:var(--gold);box-shadow:0 0 8px rgba(245,200,66,.25);}
+.task-item.done .task-chk{background:var(--green);border-color:var(--green);color:#fff;}
+.task-name{flex:1;font-size:.93rem;font-weight:500;}
+.dtag{font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:2px 7px;border-radius:20px;font-weight:700;letter-spacing:1px;flex-shrink:0;}
+.dt-easy{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+.dt-medium{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.25);}
+.dt-hard{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.dt-epic{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.25);}
+.task-xp{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--cyan);flex-shrink:0;}
+.btn-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px;transition:all .15s;flex-shrink:0;}
+.btn-del:hover{color:var(--red);background:rgba(239,68,68,.08);}
+
+.empty-state{text-align:center;padding:34px 16px;color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.78rem;line-height:1.9;}
+.empty-state .eicon{font-size:2.4rem;margin-bottom:10px;opacity:.4;}
+
+/* LEADERBOARD */
+.lb-list{padding:10px;}
+.lb-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;margin-bottom:6px;background:var(--surface2);border:1px solid var(--border);transition:border-color .18s;}
+.lb-item.is-you{border-color:var(--cyan);background:rgba(0,229,255,.06);}
+.lb-item.rank-1{border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.04);}
+.lb-item.rank-2{border-color:rgba(148,163,184,.35);}
+.lb-item.rank-3{border-color:rgba(232,160,32,.4);}
+.lb-rank{font-family:'Share Tech Mono',monospace;font-size:.85rem;font-weight:700;width:22px;text-align:center;flex-shrink:0;}
+.rank-1 .lb-rank{color:var(--gold);}
+.rank-2 .lb-rank{color:#94a3b8;}
+.rank-3 .lb-rank{color:var(--gold2);}
+.lb-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;background:var(--surface3);}
+.lb-info{flex:1;min-width:0;}
+.lb-name{font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-sub{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);}
+.lb-xpv{font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--gold);font-weight:700;flex-shrink:0;}
+.you-tag{font-size:.56rem;font-family:'Share Tech Mono',monospace;color:var(--cyan);background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle;}
+
+/* XP POP */
+.xp-pop{position:fixed;font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold);text-shadow:0 0 16px rgba(245,200,66,.8);pointer-events:none;z-index:9999;animation:floatUp 1.4s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1);}50%{opacity:1;transform:translateY(-35px) scale(1.15);}100%{opacity:0;transform:translateY(-70px) scale(.8);}}
+
+/* LEVEL UP */
+.lvlup{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:9000;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.lvlup-box{text-align:center;padding:46px 54px;background:var(--surface);border:2px solid var(--gold);border-radius:20px;box-shadow:0 0 80px rgba(245,200,66,.22);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);max-width:360px;width:90%;}
+@keyframes popIn{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.lvlup-box h2{font-family:'Cinzel Decorative',serif;font-size:1.4rem;background:linear-gradient(135deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+.lvlup-num{font-family:'Cinzel Decorative',serif;font-size:5rem;color:var(--gold);filter:drop-shadow(0 0 24px rgba(245,200,66,.6));line-height:1;margin-bottom:6px;}
+.lvlup-title{color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:.82rem;letter-spacing:2px;margin-bottom:6px;}
+.lvlup-sub{color:var(--muted);font-size:.88rem;}
+.btn-dismiss{margin-top:20px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;border:none;border-radius:10px;padding:11px 30px;font-family:'Cinzel Decorative',serif;font-size:.78rem;cursor:pointer;font-weight:700;letter-spacing:1px;transition:transform .1s;}
+.btn-dismiss:hover{transform:scale(1.05);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:11px 22px;font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--text);z-index:8000;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="loginView">
+  <div class="login-card">
+    <div class="login-top">
+      <div class="login-logo">⚔ QuestList</div>
+      <div class="login-sub">Complete quests · Earn XP · Rule the boards</div>
+    </div>
+    <div class="login-body">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Login</div>
+        <div class="auth-tab" id="tabReg" onclick="switchTab('register')">Register</div>
+      </div>
+
+      <div class="auth-err" id="authErr"></div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <div class="fgroup">
+          <label class="flabel">Username</label>
+          <input class="finput" id="loginUser" type="text" placeholder="Enter username" autocomplete="username"/>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Password</label>
+          <input class="finput" id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password"/>
+        </div>
+        <button class="btn-auth" onclick="doLogin()">⚔ Enter the Realm</button>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="regForm" style="display:none;">
+        <div class="fgroup">
+          <label class="flabel">Username</label>
+          <input class="finput" id="regUser" type="text" placeholder="Choose a username" autocomplete="username"/>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Password</label>
+          <input class="finput" id="regPass" type="password" placeholder="Choose a password" autocomplete="new-password"/>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Choose your avatar</label>
+          <div class="avatar-grid" id="avatarGrid"></div>
+        </div>
+        <button class="btn-auth" onclick="doRegister()">🌟 Create Hero</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP PAGE ===================== -->
+<div id="appView">
+  <!-- NAV -->
+  <nav class="topnav">
+    <div class="nav-logo">⚔ QuestList</div>
+    <div class="nav-right">
+      <div class="nav-user">
+        <div class="nav-av" id="navAv"></div>
+        <div class="nav-info">
+          <div class="nav-name" id="navName"></div>
+          <div class="nav-lvl" id="navLvl"></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="content">
+    <!-- PROFILE STRIP -->
+    <div class="profile-strip">
+      <div class="p-avatar" id="pAvatar">
+        <span id="pAvatarIcon"></span>
+        <span class="p-lvl-badge" id="pLvlBadge">LV1</span>
+      </div>
+      <div class="p-info">
+        <div class="p-name" id="pName"></div>
+        <div class="p-title" id="pTitle"></div>
+        <div class="p-xp-label">
+          <span>XP Progress</span>
+          <span id="pXpText">0 / 100 XP</span>
+        </div>
+        <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+        <div class="p-badges" id="pBadges"></div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-val val-gold" id="statXP">0</div>
+        <div class="p-stat-lbl">TOTAL XP</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-val val-cyan" id="statDone">0</div>
+        <div class="p-stat-lbl">QUESTS DONE</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-val val-green" id="statStreak">0🔥</div>
+        <div class="p-stat-lbl">STREAK</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+      <!-- TASKS PANEL -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <span class="panel-title">📜 Quest Board</span>
+          <div class="tab-bar">
+            <button class="tab-btn active" onclick="setTab('active')">Active <span class="cpill" id="activeCount">0</span></button>
+            <button class="tab-btn" onclick="setTab('done')">Completed</button>
+          </div>
+        </div>
+        <div class="add-form">
+          <input class="add-input" id="taskInput" type="text" placeholder="Describe your quest..." maxlength="80"/>
+          <select class="diff-sel" id="diffSel">
+            <option value="easy">⚡ Easy (25 XP)</option>
+            <option value="medium" selected>⚔ Medium (50 XP)</option>
+            <option value="hard">🔥 Hard (100 XP)</option>
+            <option value="epic">💎 Epic (200 XP)</option>
+          </select>
+          <button class="btn-add" onclick="addTask()">+ Add</button>
+        </div>
+        <div class="task-list" id="taskList"></div>
+      </div>
+
+      <!-- LEADERBOARD PANEL -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <span class="panel-title">🏆 Leaderboard</span>
+        </div>
+        <div class="lb-list" id="lbList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL UP OVERLAY -->
+<div class="lvlup" id="lvlupOverlay" style="display:none;">
+  <div class="lvlup-box">
+    <h2>⚡ Level Up! ⚡</h2>
+    <div class="lvlup-num" id="lvlupNum">2</div>
+    <div class="lvlup-title" id="lvlupTitle">APPRENTICE</div>
+    <div class="lvlup-sub" id="lvlupSub">You grow stronger, hero!</div>
+    <button class="btn-dismiss" onclick="closeLvlUp()">Continue Quest</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════ CONSTANTS ═══════════════════
+const XP_MAP = { easy:25, medium:50, hard:100, epic:200 };
+const AVATARS = ['🧙','⚔️','🛡️','🏹','🧝','🐉','👑','🧟','🔮','🦅'];
+const TITLES = ['Novice','Apprentice','Squire','Knight','Warrior','Champion','Warlord','Legend','Mythic','Demigod','Ascendant'];
+const BADGES_CONFIG = [
+  { id:'first',  label:'First Quest',  cls:'b-cyan',   req: d => d.tasksCompleted >= 1 },
+  { id:'x5',     label:'5 Quests',     cls:'b-cyan',   req: d => d.tasksCompleted >= 5 },
+  { id:'x10',    label:'10 Quests',    cls:'b-gold',   req: d => d.tasksCompleted >= 10 },
+  { id:'x25',    label:'25 Quests',    cls:'b-gold',   req: d => d.tasksCompleted >= 25 },
+  { id:'lv5',    label:'Level 5',      cls:'b-purple', req: d => getLevel(d.xp).level >= 5 },
+  { id:'epic1',  label:'Epic Slayer',  cls:'b-purple', req: d => d.tasks.some(t=>t.done && t.diff==='epic') },
+  { id:'streak5',label:'5 Streak',     cls:'b-gold',   req: d => d.streak >= 5 },
+];
+
+// NPC competitors for leaderboard
+const NPCS = [
+  { name:'Dragonslayer', xp:4200, avatar:'🐉' },
+  { name:'ShadowBlade',  xp:3500, avatar:'⚔️' },
+  { name:'ArcaneMage',   xp:2900, avatar:'🧙' },
+  { name:'IronShield',   xp:2100, avatar:'🛡️' },
+  { name:'SwiftArrow',   xp:1650, avatar:'🏹' },
+];
+
+// ═══════════════════ STATE ═══════════════════
+let currentUser = null; // username string
+let userData = {};      // { username: { password, avatar, xp, tasksCompleted, streak, tasks:[] } }
+let currentTab = 'active';
+
+// ═══════════════════ STORAGE ═══════════════════
+function saveAll() {
+  localStorage.setItem('ql_users', JSON.stringify(userData));
+  if (currentUser) localStorage.setItem('ql_session', currentUser);
+}
+
+function loadAll() {
+  try { userData = JSON.parse(localStorage.getItem('ql_users')) || {}; } catch(e){ userData = {}; }
+  currentUser = localStorage.getItem('ql_session') || null;
+}
+
+function getUserData() { return userData[currentUser]; }
+
+// ═══════════════════ AUTH HELPERS ═══════════════════
+function switchTab(tab) {
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabReg').classList.toggle('active', tab==='register');
+  document.getElementById('loginForm').style.display = tab==='login' ? '' : 'none';
+  document.getElementById('regForm').style.display   = tab==='register' ? '' : 'none';
+  document.getElementById('authErr').style.display = 'none';
+}
+
+function showErr(msg) {
+  const el = document.getElementById('authErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (!u || !p) return showErr('Please fill all fields.');
+  if (!userData[u]) return showErr('Username not found. Register first!');
+  if (userData[u].password !== btoa(p)) return showErr('Wrong password.');
+  currentUser = u;
+  saveAll();
+  enterApp();
+}
+
+function doRegister() {
+  const u = document.getElementById('regUser').value.trim();
+  const p = document.getElementById('regPass').value;
+  const av = document.querySelector('.av-opt.sel');
+  if (!u || !p) return showErr('Please fill all fields.');
+  if (u.length < 3) return showErr('Username must be at least 3 characters.');
+  if (p.length < 4) return showErr('Password must be at least 4 characters.');
+  if (!av) return showErr('Please pick an avatar!');
+  if (userData[u]) return showErr('Username already taken. Choose another.');
+  userData[u] = {
+    password: btoa(p),
+    avatar: av.dataset.av,
+    xp: 0, tasksCompleted: 0, streak: 0,
+    tasks: [],
+  };
+  currentUser = u;
+  saveAll();
+  enterApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  localStorage.removeItem('ql_session');
+  document.getElementById('appView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('authErr').style.display = 'none';
+}
+
+// ═══════════════════ APP ENTER ═══════════════════
+function enterApp() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('appView').style.display = 'block';
+  renderAll();
+}
+
+// ═══════════════════ XP / LEVEL ═══════════════════
+function getLevel(xp) {
+  let lvl = 1, total = 0;
+  while (total + lvl * 100 <= xp) { total += lvl * 100; lvl++; }
+  return { level: lvl, xpInLevel: xp - total, xpNeeded: lvl * 100 };
+}
+
+function getTitle(lvl) { return TITLES[Math.min(lvl-1, TITLES.length-1)]; }
+
+// ═══════════════════ RENDER ═══════════════════
+function renderAll() {
+  renderHUD();
+  renderTasks();
+  renderLeaderboard();
+}
+
+function renderHUD() {
+  const d = getUserData();
+  const { level, xpInLevel, xpNeeded } = getLevel(d.xp);
+  const pct = Math.min((xpInLevel / xpNeeded) * 100, 100);
+  const title = getTitle(level);
+
+  // Nav
+  document.getElementById('navAv').textContent = d.avatar;
+  document.getElementById('navName').textContent = currentUser;
+  document.getElementById('navLvl').textContent = `LVL ${level} · ${title}`;
+
+  // Profile strip
+  document.getElementById('pAvatarIcon').textContent = d.avatar;
+  document.getElementById('pLvlBadge').textContent = `LV${level}`;
+  document.getElementById('pName').textContent = currentUser;
+  document.getElementById('pTitle').textContent = title.toUpperCase();
+  document.getElementById('pXpText').textContent = `${xpInLevel} / ${xpNeeded} XP`;
+  document.getElementById('xpFill').style.width = pct + '%';
+  document.getElementById('statXP').textContent = d.xp;
+  document.getElementById('statDone').textContent = d.tasksCompleted;
+  document.getElementById('statStreak').textContent = d.streak + '🔥';
+
+  // Badges
+  const earned = BADGES_CONFIG.filter(b => b.req(d));
+  const badgeEl = document.getElementById('pBadges');
+  badgeEl.innerHTML = earned.length
+    ? earned.map(b => `<span class="badge ${b.cls}">${b.label}</span>`).join('')
+    : '<span style="font-family:\'Share Tech Mono\',monospace;font-size:.62rem;color:var(--muted)">Complete quests to earn badges!</span>';
+}
+
+function renderTasks() {
+  const d = getUserData();
+  const filtered = d.tasks.filter(t => currentTab === 'active' ? !t.done : t.done);
+  document.getElementById('activeCount').textContent = d.tasks.filter(t => !t.done).length;
+
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i===0 && currentTab==='active') || (i===1 && currentTab==='done'));
+  });
+
+  const list = document.getElementById('taskList');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="eicon">${currentTab==='done'?'🏅':'🗡️'}</div>${currentTab==='done'?'No completed quests yet.':'No active quests yet.<br>Add one above to begin!'}</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(t => `
+    <div class="task-item diff-${t.diff} ${t.done?'done':''}" id="ti-${t.id}">
+      <div class="task-chk" onclick="completeTask('${t.id}')" title="Complete">${t.done?'✓':''}</div>
+      <div class="task-name">${esc(t.name)}</div>
+      <span class="dtag dt-${t.diff}">${t.diff.toUpperCase()}</span>
+      <span class="task-xp">+${t.xp}XP</span>
+      <button class="btn-del" onclick="deleteTask('${t.id}')" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function renderLeaderboard() {
+  const d = getUserData();
+  const me = { name: currentUser, xp: d.xp, avatar: d.avatar, isYou: true };
+  const all = [...NPCS, me].sort((a,b) => b.xp - a.xp);
+  const medals = ['🥇','🥈','🥉'];
+
+  document.getElementById('lbList').innerHTML = all.map((p, i) => {
+    const { level } = getLevel(p.xp);
+    const title = getTitle(level);
+    const rankCls = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    const rank = i < 3 ? medals[i] : `#${i+1}`;
+    return `
+      <div class="lb-item ${rankCls} ${p.isYou?'is-you':''}">
+        <div class="lb-rank">${rank}</div>
+        <div class="lb-av">${p.avatar||'⚔️'}</div>
+        <div class="lb-info">
+          <div class="lb-name">${esc(p.name)}${p.isYou?'<span class="you-tag">YOU</span>':''}</div>
+          <div class="lb-sub">${title} · Lv.${level}</div>
+        </div>
+        <div class="lb-xpv">${p.xp.toLocaleString()}</div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════ TASK ACTIONS ═══════════════════
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const name = input.value.trim();
+  const diff = document.getElementById('diffSel').value;
+  if (!name) { input.focus(); return; }
+  const d = getUserData();
+  d.tasks.unshift({ id: Date.now().toString(), name, diff, done: false, xp: XP_MAP[diff] });
+  saveAll();
+  input.value = '';
+  renderAll();
+}
+
+function completeTask(id) {
+  const d = getUserData();
+  const task = d.tasks.find(t => t.id === id);
+  if (!task || task.done) return;
+  task.done = true;
+  const prevLevel = getLevel(d.xp).level;
+  d.xp += task.xp;
+  d.tasksCompleted++;
+  d.streak++;
+  saveAll();
+
+  // XP popup
+  const el = document.getElementById('ti-' + id);
+  if (el) {
+    const r = el.getBoundingClientRect();
+    const pop = document.createElement('div');
+    pop.className = 'xp-pop';
+    pop.textContent = `+${task.xp} XP`;
+    pop.style.left = (r.left + 10) + 'px';
+    pop.style.top  = (r.top + window.scrollY) + 'px';
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 1500);
+  }
+
+  renderAll();
+
+  const newLevel = getLevel(d.xp).level;
+  if (newLevel > prevLevel) setTimeout(() => showLvlUp(newLevel), 600);
+}
+
+function deleteTask(id) {
+  const d = getUserData();
+  d.tasks = d.tasks.filter(t => t.id !== id);
+  saveAll();
+  renderAll();
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  renderTasks();
+}
+
+// ═══════════════════ LEVEL UP ═══════════════════
+function showLvlUp(lvl) {
+  document.getElementById('lvlupNum').textContent = lvl;
+  document.getElementById('lvlupTitle').textContent = getTitle(lvl).toUpperCase();
+  document.getElementById('lvlupSub').textContent = `You are now a ${getTitle(lvl)}!`;
+  document.getElementById('lvlupOverlay').style.display = 'flex';
+}
+
+function closeLvlUp() {
+  document.getElementById('lvlupOverlay').style.display = 'none';
+}
+
+// ═══════════════════ TOAST ═══════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════ UTILS ═══════════════════
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ═══════════════════ INIT AVATAR PICKER ═══════════════════
+function initAvatarPicker() {
+  const grid = document.getElementById('avatarGrid');
+  let selected = AVATARS[0];
+  grid.innerHTML = AVATARS.map((av, i) =>
+    `<div class="av-opt ${i===0?'sel':''}" data-av="${av}" onclick="pickAvatar(this)">${av}</div>`
+  ).join('');
+}
+
+function pickAvatar(el) {
+  document.querySelectorAll('.av-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ═══════════════════ KEYBOARD ═══════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('loginView').style.display !== 'none') {
+      const isLogin = document.getElementById('tabLogin').classList.contains('active');
+      isLogin ? doLogin() : doRegister();
+    } else if (document.getElementById('taskInput') === document.activeElement) {
+      addTask();
+    }
+  }
+});
+
+// ═══════════════════ BOOT ═══════════════════
+loadAll();
+initAvatarPicker();
+
+if (currentUser && userData[currentUser]) {
+  enterApp();
+}
+</script>
+</body>
+</html>
